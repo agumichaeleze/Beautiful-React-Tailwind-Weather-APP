@@ -1,18 +1,44 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 
 
 function SearchBar ({fetchWeather}) {
-    const [city, setCity] = useState("");
+        // const [city, setCity] = useState("");
+        const [city, setCity] = useState(() => {
+            return localStorage.getItem("city") || "";
+        });
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (city.trim()) {
-            fetchWeather(city);
-            setCity("");
+        useEffect(() => {
+            localStorage.setItem("city", city)
+        }, [city]);
+
+        const handleSubmit = (e) => {
+            e.preventDefault();
+            if (city.trim()) {
+                fetchWeather(city);
+                // setCity("");
+            }
         }
-    }
+
+        const handleUseLocation = () => {
+            if (navigator.geolocation) 
+                {navigator.geolocation.getCurrentPosition((pos) => {
+                const { latitude, longitude } = pos.coords;
+                fetchWeatherByCoords(latitude, longitude);
+                },
+                (err) => {
+                alert("Unable to fetch your location. Please allow location access.");
+                console.error(err);
+                }
+            );
+            } else {
+            alert("Geolocation is not supported by your browser.");
+            }
+        };
+
+
     return(
-        <form className="flex" onSubmit={handleSubmit}>
+        <div className="flex flex-col gap-3">
+            <form className="flex" onSubmit={handleSubmit}>
             <input type="text"
             placeholder="Type City Name...."
             value={city}
@@ -23,6 +49,12 @@ function SearchBar ({fetchWeather}) {
                 Search
             </button>
         </form>
+            {/* Location button */}
+        <button onClick={handleUseLocation}
+        className="w-full rounded-md p-2 bg-green-500 hover:bg-green-600 cursor-pointer text-white">
+            Use My Location
+        </button>
+        </div>
     );
 }
 
